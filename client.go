@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Client struct {
@@ -24,6 +25,7 @@ type Client struct {
 const (
 	pointCount              = 5
 	maxConnectionsPerServer = 10
+	connectionTimeout       = 100 * time.Millisecond
 )
 
 func NewClient() *Client {
@@ -80,13 +82,14 @@ func (this *Client) getConnection(addr net.Addr) (conn *net.Conn, err error) {
 	}
 
 	if len(connections) == 0 {
-		c, err := net.Dial(addr.Network(), addr.String())
+		c, err := net.DialTimeout(addr.Network(), addr.String(), connectionTimeout)
 		if err != nil {
 			return nil, err
 		}
 		conn = &c
 	} else {
 		conn = connections[len(connections)-1]
+		(*conn).SetDeadline(time.Now().Add(connectionTimeout))
 		this.connections[addr.String()] = connections[:len(connections)-1]
 	}
 
