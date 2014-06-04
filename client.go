@@ -101,6 +101,10 @@ func (this *Client) releaseConnection(addr net.Addr, conn *net.Conn) {
 }
 
 func (this *Client) store(cmd []byte, key []byte, priority uint64, flags uint64, exptime uint64, casid uint64, value []byte) (err error) {
+	if err = this.validate(key, value); err != nil {
+		return
+	}
+
 	addr := this.getServerAddr(key)
 	if addr == nil {
 		return fmt.Errorf("No servers added")
@@ -175,6 +179,10 @@ func (this *Client) Cas(key []byte, priority uint64, flags uint64, exptime uint6
 }
 
 func (this *Client) get(cmd []byte, key []byte) (value []byte, flags uint64, casid uint64, err error) {
+	if err = this.validate(key, nil); err != nil {
+		return
+	}
+
 	addr := this.getServerAddr(key)
 	if addr == nil {
 		err = fmt.Errorf("No servers added")
@@ -241,6 +249,10 @@ func (this *Client) Gets(key []byte) (value []byte, flags uint64, casid uint64, 
 }
 
 func (this *Client) Delete(key []byte) (err error) {
+	if err = this.validate(key, nil); err != nil {
+		return
+	}
+
 	addr := this.getServerAddr(key)
 	if addr == nil {
 		return fmt.Errorf("No servers added")
@@ -274,4 +286,16 @@ func (this *Client) Delete(key []byte) (err error) {
 	}
 
 	return fmt.Errorf("Unextected response")
+}
+
+func (this *Client) validate(key []byte, value []byte) (err error) {
+	if len(key) == 0 || len(key) > maxKeyLength {
+		return fmt.Errorf("Invalid key")
+	}
+
+	if value != nil && (len(value) == 0 || len(value) > maxValueLength) {
+		return fmt.Errorf("Invalid value")
+	}
+
+	return nil
 }

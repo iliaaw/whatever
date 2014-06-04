@@ -25,6 +25,9 @@ var (
 	msgNotFound  = "NOT_FOUND\r\n"
 	msgExists    = "EXISTS\r\n"
 	msgError     = "ERROR\r\n"
+
+	maxKeyLength   = 1024
+	maxValueLength = 1024 * 1024
 )
 
 type Parser struct {

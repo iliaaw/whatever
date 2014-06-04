@@ -98,17 +98,19 @@ func (this *Server) handleConn(conn net.Conn) {
 		} else if bytes.HasPrefix(buffer, cmdDelete) {
 			log.Printf("Received «delete» command: %s", this.parser.cmd)
 			this.runDeleteCmd()
+		} else if len(buffer) == 1 {
+			return
 		} else {
 			log.Printf("Received nonexistent command «%s»", this.parser.cmd)
 			this.handleError()
 		}
 
 		if _, err = rw.Write([]byte(this.response)); err != nil {
-			//return
+			return
 		}
 
 		if err = rw.Flush(); err != nil {
-			//return
+			return
 		}
 
 		this.response = ""
